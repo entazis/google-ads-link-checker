@@ -103,7 +103,9 @@ function isValidResponse(url, response, options, entityDetails) {
   // var responseCode = response.getResponseCode();
 
   // The HTTP response body, e.g. HTML for web pages:
-  // var responseText = response.getContentText();
+  var responseText = response.getContentText();
+
+  //TODO: write html block search for out of stocks for each site, get code from spreadsheet
 
   // The failure strings from the configuration spreadsheet, as an array:
   // var failureStrings = options.failureStrings;
