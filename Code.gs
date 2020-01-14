@@ -103,9 +103,7 @@ function isValidResponse(url, response, options, entityDetails) {
   // var responseCode = response.getResponseCode();
 
   // The HTTP response body, e.g. HTML for web pages:
-  var responseText = response.getContentText();
-
-  //TODO: write html block search for out of stocks for each site, get code from spreadsheet
+  // var responseText = response.getContentText();
 
   // The failure strings from the configuration spreadsheet, as an array:
   // var failureStrings = options.failureStrings;
@@ -1065,12 +1063,12 @@ function requestUrl(url, options, entityDetails) {
  * @return {boolean} Returns true if at least one failure string found.
  */
 function bodyContainsFailureStrings(response, failureStrings) {
-  var contentText = response.getContentText() || '';
+  var contentText = response.getContentText().toLowerCase() || '';
   // Whilst searching for each separate failure string across the body text
   // separately may not be the most efficient, it is simple, and tests suggest
   // it is not overly poor performance-wise.
   return failureStrings.some(function(failureString) {
-    return contentText.indexOf(failureString) !== -1;
+    return contentText.indexOf(failureString.toLowerCase()) !== -1;
   });
 }
 
