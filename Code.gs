@@ -177,7 +177,9 @@ var NAMES = {
   EMAIL_NON_ERRORS: 'emailNonErrors',
   EMAIL_ON_COMPLETION: 'emailOnCompletion',
   SAVE_ALL_URLS: 'saveAllUrls',
+  EXCEPTION_URLS: 'exceptionUrls',
   FAILURE_STRINGS: 'failureStrings',
+  FAILURE_HTMLS: 'failureHtmls',
   FREQUENCY: 'frequency',
   DATE_STARTED: 'dateStarted',
   DATE_COMPLETED: 'dateCompleted',
@@ -186,6 +188,8 @@ var NAMES = {
   RESULT_HEADERS: 'resultHeaders',
   ARCHIVE_HEADERS: 'archiveHeaders',
   USE_SIMPLE_FAILURE_STRINGS: 'useSimpleFailureStrings',
+  USE_SIMPLE_FAILURE_HTMLS: 'useSimpleFailureHtmls',
+  USE_EXCEPTION_URLS: 'useExceptionUrls',
   USE_CUSTOM_VALIDATION: 'useCustomValidation'
 };
 
@@ -454,6 +458,8 @@ function loadOptions(spreadsheet) {
         NAMES.EMAIL_NON_ERRORS, NAMES.EMAIL_ON_COMPLETION,
         NAMES.SAVE_ALL_URLS, NAMES.FREQUENCY,
         NAMES.FAILURE_STRINGS, NAMES.USE_SIMPLE_FAILURE_STRINGS,
+        NAMES.USE_SIMPLE_FAILURE_HTMLS, NAMES.USE_EXCEPTION_URLS,
+        NAMES.FAILURE_HTMLS, NAMES.EXCEPTION_URLS,
         NAMES.USE_CUSTOM_VALIDATION]);
 }
 
