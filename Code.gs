@@ -789,7 +789,7 @@ function checkUrlsBySelector(checkedUrls, urlChecks, selector, options) {
         customerId: customerId,
         timestamp: new Date(),
         url: expandedUrl,
-        responseCode: options.exceptionUrls.indexOf(expandedUrl) ? 'EXCEPTION' : responseCode,
+        responseCode: (options.exceptionUrls.indexOf(expandedUrl) !== -1) ? 'EXCEPTION' : responseCode,
         entityType: entityDetails.entityType,
         campaign: entityDetails.campaign,
         adGroup: entityDetails.adGroup,
