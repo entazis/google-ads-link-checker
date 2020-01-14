@@ -1026,7 +1026,11 @@ function requestUrl(url, options, entityDetails) {
       responseCode = response.getResponseCode();
 
       if (options.validCodes.indexOf(responseCode) !== -1) {
-        if (options.useSimpleFailureStrings &&
+        if (options.useSimpleFailureHtmls &&
+            bodyContainsFailureHtmls(response, options.failureHtmls)) {
+          responseCode = 'Failure HTML detected';
+        }
+        else if (options.useSimpleFailureStrings &&
             bodyContainsFailureStrings(response, options.failureStrings)) {
           responseCode = 'Failure string detected';
         } else if (options.useCustomValidation && !isValidResponse(url,
@@ -1076,6 +1080,10 @@ function bodyContainsFailureStrings(response, failureStrings) {
   return failureStrings.some(function(failureString) {
     return contentText.indexOf(failureString.toLowerCase()) !== -1;
   });
+}
+
+function bodyContainsFailureHtmls(response, failureHtmls) {
+  return bodyContainsFailureStrings(response, failureHtmls);
 }
 
 /**
