@@ -47,11 +47,11 @@
 var CONFIG = {
   // URL of the spreadsheet template.
   // This should be a copy of https://docs.google.com/spreadsheets/d/1iO1iEGwlbe510qo3Li-j4KgyCeVSmodxU6J7M756ppk/copy.
-  SPREADSHEET_URL: 'YOUR_SPREADSHEET_URL',
+  SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID',
 
   // Array of addresses to be alerted via email if issues are found.
   RECIPIENT_EMAILS: [
-    'YOUR_EMAIL_HERE'
+    ''
   ],
 
   // Label to use when a link has been checked.
@@ -179,7 +179,7 @@ var NAMES = {
 };
 
 function main() {
-  var spreadsheet = validateAndGetSpreadsheet(CONFIG.SPREADSHEET_URL);
+  var spreadsheet = validateAndGetSpreadsheet(CONFIG.SPREADSHEET_ID);
   validateEmailAddresses(CONFIG.RECIPIENT_EMAILS);
   spreadsheet.setSpreadsheetTimeZone(AdsApp.currentAccount().getTimeZone());
 
@@ -250,7 +250,7 @@ function analyzeAccount(options) {
  * @param {Object} options Dictionary of options.
  */
 function outputResults(results, options) {
-  var spreadsheet = SpreadsheetApp.openByUrl(CONFIG.SPREADSHEET_URL);
+  var spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
 
   var numErrors = countErrors(results.urlChecks, options);
   Logger.log('Found ' + numErrors + ' this execution.');
@@ -1079,16 +1079,16 @@ function removeLabels(labelNames) {
  * Validates the provided spreadsheet URL to make sure that it's set up
  * properly. Throws a descriptive error message if validation fails.
  *
- * @param {string} spreadsheeturl The URL of the spreadsheet to open.
+ * @param {string} spreadsheetId The URL of the spreadsheet to open.
  * @return {Spreadsheet} The spreadsheet object itself, fetched from the URL.
  * @throws {Error} If the spreadsheet URL hasn't been set
  */
-function validateAndGetSpreadsheet(spreadsheeturl) {
-  if (spreadsheeturl === 'YOUR_SPREADSHEET_URL') {
+function validateAndGetSpreadsheet(spreadsheetId) {
+  if (spreadsheetId === 'YOUR_SPREADSHEET_ID') {
     throw new Error('Please specify a valid Spreadsheet URL. You can find' +
         ' a link to a template in the associated guide for this script.');
   }
-  return SpreadsheetApp.openByUrl(spreadsheeturl);
+  return SpreadsheetApp.openById(spreadsheetId);
 }
 
 /**
