@@ -53,11 +53,11 @@
 var CONFIG = {
   // URL of the spreadsheet template.
   // This should be a copy of https://docs.google.com/spreadsheets/d/1iO1iEGwlbe510qo3Li-j4KgyCeVSmodxU6J7M756ppk/copy.
-  SPREADSHEET_URL: '',
+  SPREADSHEET_URL: 'YOUR_SPREADSHEET_URL',
 
   // Array of addresses to be alerted via email if issues are found.
   RECIPIENT_EMAILS: [
-    ''
+    'YOUR_EMAIL_HERE'
   ],
 
   // Label to use when a link has been checked.

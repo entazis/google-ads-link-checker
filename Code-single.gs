@@ -51,7 +51,7 @@ var CONFIG = {
 
   // Array of addresses to be alerted via email if issues are found.
   RECIPIENT_EMAILS: [
-    ''
+    'YOUR_EMAIL_HERE'
   ],
 
   // Label to use when a link has been checked.
