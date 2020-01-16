@@ -161,8 +161,10 @@ var NAMES = {
   EMAIL_EACH_RUN: 'emailEachRun',
   EMAIL_NON_ERRORS: 'emailNonErrors',
   EMAIL_ON_COMPLETION: 'emailOnCompletion',
-  FAILURE_STRINGS: 'failureStrings',
   SAVE_ALL_URLS: 'saveAllUrls',
+  EXCEPTION_URLS: 'exceptionUrls',
+  FAILURE_STRINGS: 'failureStrings',
+  FAILURE_HTMLS: 'failureHtmls',
   FREQUENCY: 'frequency',
   DATE_STARTED: 'dateStarted',
   DATE_COMPLETED: 'dateCompleted',
@@ -171,6 +173,8 @@ var NAMES = {
   RESULT_HEADERS: 'resultHeaders',
   ARCHIVE_HEADERS: 'archiveHeaders',
   USE_SIMPLE_FAILURE_STRINGS: 'useSimpleFailureStrings',
+  USE_SIMPLE_FAILURE_HTMLS: 'useSimpleFailureHtmls',
+  USE_EXCEPTION_URLS: 'useExceptionUrls',
   USE_CUSTOM_VALIDATION: 'useCustomValidation'
 };
 
@@ -222,9 +226,9 @@ function analyzeAccount(options) {
     // If the script throws an exception, didComplete will remain false.
     didComplete = checkUrls(checkedUrls, urlChecks, options);
   } catch(e) {
-    if (e == EXCEPTIONS.QPS ||
-        e == EXCEPTIONS.LIMIT ||
-        e == EXCEPTIONS.TIMEOUT) {
+    if (e === EXCEPTIONS.QPS ||
+        e === EXCEPTIONS.LIMIT ||
+        e === EXCEPTIONS.TIMEOUT) {
       Logger.log('Stopped checking URLs early because: ' + e);
       Logger.log('Checked URLs will still be output.');
     } else {
@@ -296,7 +300,7 @@ function loadDatabyName(spreadsheet, names) {
     if (range.getNumRows() > 1 && range.getNumColumns() > 1) {
       // Name refers to a 2d range, so load it as a 2d array.
       data[name] = range.getValues();
-    } else if (range.getNumRows() == 1 && range.getNumColumns() == 1) {
+    } else if (range.getNumRows() === 1 && range.getNumColumns() === 1) {
       // Name refers to a single cell, so load it as a value and replace
       // Yes/No with boolean true/false.
       data[name] = range.getValue();
@@ -337,6 +341,8 @@ function loadOptions(spreadsheet) {
         NAMES.EMAIL_NON_ERRORS, NAMES.EMAIL_ON_COMPLETION,
         NAMES.SAVE_ALL_URLS, NAMES.FREQUENCY,
         NAMES.FAILURE_STRINGS, NAMES.USE_SIMPLE_FAILURE_STRINGS,
+        NAMES.USE_SIMPLE_FAILURE_HTMLS, NAMES.USE_EXCEPTION_URLS,
+        NAMES.FAILURE_HTMLS, NAMES.EXCEPTION_URLS,
         NAMES.USE_CUSTOM_VALIDATION]);
 }
 
@@ -388,7 +394,7 @@ function countErrors(urlChecks, options) {
   var numErrors = 0;
 
   for (var i = 0; i < urlChecks.length; i++) {
-    if (options.validCodes.indexOf(urlChecks[i].responseCode) == -1) {
+    if (options.validCodes.indexOf(urlChecks[i].responseCode) === -1) {
       numErrors++;
     }
   }
@@ -411,7 +417,7 @@ function saveUrlsToSpreadsheet(spreadsheet, urlChecks, options) {
     var urlCheck = urlChecks[i];
 
     if (options.saveAllUrls ||
-        options.validCodes.indexOf(urlCheck.responseCode) == -1) {
+        options.validCodes.indexOf(urlCheck.responseCode) === -1) {
       outputValues.push([
         urlCheck.customerId,
         new Date(urlCheck.timestamp),
@@ -654,9 +660,9 @@ function checkUrlsBySelector(checkedUrls, urlChecks, selector, options) {
         entityType: entityType,
         campaign: entity.getCampaign ? entity.getCampaign().getName() : '',
         adGroup: entity.getAdGroup ? entity.getAdGroup().getName() : '',
-        ad: entityType == 'Ad' ? getAdAsText(entity) : '',
-        keyword: entityType == 'Keyword' ? entity.getText() : '',
-        sitelink: entityType.indexOf('Sitelink') != -1 ?
+        ad: entityType === 'Ad' ? getAdAsText(entity) : '',
+        keyword: entityType === 'Keyword' ? entity.getText() : '',
+        sitelink: entityType.indexOf('Sitelink') !== -1 ?
             entity.getLinkText() : ''
       };
 
@@ -666,7 +672,7 @@ function checkUrlsBySelector(checkedUrls, urlChecks, selector, options) {
         customerId: customerId,
         timestamp: new Date(),
         url: expandedUrl,
-        responseCode: responseCode,
+        responseCode: (options.exceptionUrls.indexOf(expandedUrl) !== -1) ? 'EXCEPTION' : responseCode,
         entityType: entityDetails.entityType,
         campaign: entityDetails.campaign,
         adGroup: entityDetails.adGroup,
@@ -697,7 +703,7 @@ function checkUrlsBySelector(checkedUrls, urlChecks, selector, options) {
   }
 
   // True only if we did not breach an iterator limit.
-  return entities.length == iterator.totalNumEntities();
+  return entities.length === iterator.totalNumEntities();
 }
 
 /**
@@ -770,7 +776,7 @@ function checkSitelinkUrls(checkedUrls, urlChecks, options) {
 
     // True only if we did not breach an iterator limit.
     didComplete = didComplete &&
-        entities.length == iterator.totalNumEntities();
+        entities.length === iterator.totalNumEntities();
   };
 
   var statuses = ['ENABLED'];
@@ -903,7 +909,11 @@ function requestUrl(url, options, entityDetails) {
       responseCode = response.getResponseCode();
 
       if (options.validCodes.indexOf(responseCode) !== -1) {
-        if (options.useSimpleFailureStrings &&
+        if (options.useSimpleFailureHtmls &&
+            bodyContainsFailureHtmls(response, options.failureHtmls)) {
+          responseCode = 'Failure HTML detected';
+        }
+        else if (options.useSimpleFailureStrings &&
             bodyContainsFailureStrings(response, options.failureStrings)) {
           responseCode = 'Failure string detected';
         } else if (options.useCustomValidation && !isValidResponse(url,
@@ -917,10 +927,10 @@ function requestUrl(url, options, entityDetails) {
       }
     } catch(e) {
       if (e.message.indexOf('Service invoked too many times in a short time:')
-          != -1) {
+          !== -1) {
         Utilities.sleep(sleepTime);
         sleepTime *= QUOTA_CONFIG.BACKOFF_FACTOR;
-      } else if (e.message.indexOf('Service invoked too many times:') != -1) {
+      } else if (e.message.indexOf('Service invoked too many times:') !== -1) {
         throw EXCEPTIONS.LIMIT;
       } else {
         return e.message;
@@ -946,13 +956,17 @@ function requestUrl(url, options, entityDetails) {
  * @return {boolean} Returns true if at least one failure string found.
  */
 function bodyContainsFailureStrings(response, failureStrings) {
-  var contentText = response.getContentText() || '';
+  var contentText = response.getContentText().toLowerCase() || '';
   // Whilst searching for each separate failure string across the body text
   // separately may not be the most efficient, it is simple, and tests suggest
   // it is not overly poor performance-wise.
   return failureStrings.some(function(failureString) {
-    return contentText.indexOf(failureString) !== -1;
+    return contentText.indexOf(failureString.toLowerCase()) !== -1;
   });
+}
+
+function bodyContainsFailureHtmls(response, failureHtmls) {
+  return bodyContainsFailureStrings(response, failureHtmls);
 }
 
 /**
@@ -1070,7 +1084,7 @@ function removeLabels(labelNames) {
  * @throws {Error} If the spreadsheet URL hasn't been set
  */
 function validateAndGetSpreadsheet(spreadsheeturl) {
-  if (spreadsheeturl == 'YOUR_SPREADSHEET_URL') {
+  if (spreadsheeturl === 'YOUR_SPREADSHEET_URL') {
     throw new Error('Please specify a valid Spreadsheet URL. You can find' +
         ' a link to a template in the associated guide for this script.');
   }
@@ -1086,7 +1100,7 @@ function validateAndGetSpreadsheet(spreadsheeturl) {
  */
 function validateEmailAddresses(recipientEmails) {
   if (recipientEmails &&
-      recipientEmails[0] == 'YOUR_EMAIL_HERE') {
+      recipientEmails[0] === 'YOUR_EMAIL_HERE') {
     throw new Error('Please either specify a valid email address or clear' +
         ' the RECIPIENT_EMAILS field.');
   }
